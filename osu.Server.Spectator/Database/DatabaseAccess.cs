@@ -31,23 +31,23 @@ namespace osu.Server.Spectator.Database
 
             DapperExtensions.InstallDateTimeOffsetMapper();
 
-            var connection = new MySqlConnection($"Server={host};Port={port};Database=osu;User ID={user};ConnectionTimeout=5;ConnectionReset=false;Pooling=true;");
+            var connection = new MySqlConnection($"Server={host};Port={port};Database=keesu;User ID={user};ConnectionTimeout=5;ConnectionReset=false;Pooling=true;");
             connection.Open();
             return connection;
         }
 
         public Task<int?> GetUserIdFromTokenAsync(JwtSecurityToken jwtToken)
         {
-            return connection.QueryFirstOrDefaultAsync<int?>("SELECT user_id FROM oauth_access_tokens WHERE revoked = false AND expires_at > now() AND id = @id",
+            return connection.QueryFirstOrDefaultAsync<int?>("SELECT user_id FROM oauth_access_tokens WHERE revoked = false AND expires_at > UNIX_TIMESTAMP(now()) AND id = @id",
                 new { id = jwtToken.Id });
         }
 
         public async Task<bool> IsUserRestrictedAsync(int userId)
         {
-            return await connection.QueryFirstOrDefaultAsync<byte>("SELECT user_warnings FROM phpbb_users WHERE user_id = @UserID", new
+            return (await connection.QueryFirstOrDefaultAsync<int>("SELECT user_debuff FROM users WHERE user_id = @UserID", new
             {
                 UserID = userId
-            }) != 0;
+            }) & (1 << 3)) == (1 << 3);
         }
 
         public Task<multiplayer_room> GetRoomAsync(long roomId)
@@ -69,7 +69,7 @@ namespace osu.Server.Spectator.Database
 
         public Task<string?> GetBeatmapChecksumAsync(int beatmapId)
         {
-            return connection.QuerySingleAsync<string?>("SELECT checksum from osu_beatmaps where beatmap_id = @BeatmapID", new
+            return connection.QuerySingleAsync<string?>("SELECT checksum from beatmaps where beatmap_id = @BeatmapID", new
             {
                 BeatmapId = beatmapId
             });

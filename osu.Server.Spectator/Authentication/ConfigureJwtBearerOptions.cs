@@ -32,9 +32,8 @@ namespace osu.Server.Spectator.Authentication
                 IssuerSigningKey = new RsaSecurityKey(rsa),
                 // TODO: check what "5" means.
                 ValidAudience = "5",
-                // TODO: figure out why this isn't included in the token.
-                ValidateIssuer = false,
-                ValidIssuer = "https://osu.ppy.sh/"
+                ValidateIssuer = true,
+                ValidIssuer = "Sakamoto"
             };
 
             options.Events = new JwtBearerEvents

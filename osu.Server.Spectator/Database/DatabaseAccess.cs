@@ -26,7 +26,7 @@ namespace osu.Server.Spectator.Database
         private static MySqlConnection getConnection()
         {
             string host = Environment.GetEnvironmentVariable("DB_HOST") ?? "localhost";
-            string user = Environment.GetEnvironmentVariable("DB_USER") ?? "root";
+            string user = Environment.GetEnvironmentVariable("DB_USER") ?? "keesu_lc";
             string port = Environment.GetEnvironmentVariable("DB_PORT") ?? "3306";
 
             DapperExtensions.InstallDateTimeOffsetMapper();
@@ -38,7 +38,7 @@ namespace osu.Server.Spectator.Database
 
         public Task<int?> GetUserIdFromTokenAsync(JwtSecurityToken jwtToken)
         {
-            return connection.QueryFirstOrDefaultAsync<int?>("SELECT user_id FROM oauth_access_tokens WHERE revoked = false AND expires_at > UNIX_TIMESTAMP(now()) AND id = @id",
+            return connection.QueryFirstOrDefaultAsync<int?>("SELECT user_id FROM oauth_access_token WHERE revoked = false AND expires_at > UNIX_TIMESTAMP(now()) AND id = @id",
                 new { id = jwtToken.Id });
         }
 

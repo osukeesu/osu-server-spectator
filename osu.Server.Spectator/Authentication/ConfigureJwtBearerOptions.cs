@@ -25,13 +25,15 @@ namespace osu.Server.Spectator.Authentication
 
         public void Configure(JwtBearerOptions options)
         {
-            var rsa = getKeyProvider();
 
             options.TokenValidationParameters = new TokenValidationParameters
             {
-                IssuerSigningKey = new RsaSecurityKey(rsa),
-                // TODO: check what "5" means.
-                ValidAudience = "5",
+                IssuerSigningKey = new SymmetricSecurityKey(getKey()),
+
+                // client id, going to ignore this.
+                //ValidAudience = "3"
+                ValidateAudience = false,
+
                 ValidateIssuer = true,
                 ValidIssuer = "Sakamoto"
             };
@@ -60,32 +62,15 @@ namespace osu.Server.Spectator.Authentication
 
         public void Configure(string name, JwtBearerOptions options)
             => Configure(options);
-
-        /// <summary>
-        /// borrowed from https://stackoverflow.com/a/54323524
-        /// </summary>
-        private static RSACryptoServiceProvider getKeyProvider()
+        private static byte[] _key = null;
+        private static byte[] getKey()
         {
-            string key = File.ReadAllText("oauth-public.key");
-
-            key = key.Replace("-----BEGIN PUBLIC KEY-----", "");
-            key = key.Replace("-----END PUBLIC KEY-----", "");
-            key = key.Replace("\n", "");
-
-            var keyBytes = Convert.FromBase64String(key);
-
-            var asymmetricKeyParameter = PublicKeyFactory.CreateKey(keyBytes);
-            var rsaKeyParameters = (RsaKeyParameters)asymmetricKeyParameter;
-            var rsaParameters = new RSAParameters
+            if (_key == null)
             {
-                Modulus = rsaKeyParameters.Modulus.ToByteArrayUnsigned(),
-                Exponent = rsaKeyParameters.Exponent.ToByteArrayUnsigned()
-            };
-
-            var rsa = new RSACryptoServiceProvider();
-            rsa.ImportParameters(rsaParameters);
-
-            return rsa;
+                var b64 = File.ReadAllText("public.key");
+                _key = Convert.FromBase64String(b64);
+            }
+            return _key;
         }
     }
 }
